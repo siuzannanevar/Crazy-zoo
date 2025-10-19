@@ -1,4 +1,4 @@
-namespace CrazyZoo.Animals
+namespace Crazy_zoo.Animals
 {
     public class Dragon: Animal, ICrazyAction
     {
@@ -14,4 +14,5 @@ namespace CrazyZoo.Animals
             log($"{Name} jumps from the water!");
         }
     }
+
 }
