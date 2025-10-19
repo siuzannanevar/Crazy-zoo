@@ -1,4 +1,4 @@
-namespace CrazyZoo.Animals
+namespace Crazy_zoo.Animals
 {
     public class Unicorn: Animal, ICrazyAction
     {
@@ -14,4 +14,5 @@ namespace CrazyZoo.Animals
             log($"{Name} teleports in time!");
         }
     }
+
 }
