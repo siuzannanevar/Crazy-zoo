@@ -18,6 +18,9 @@ namespace Crazy_zoo
             Animals.Add(new Lion { Name = "Edward", Age = 17, Species = "Lion" });
             Animals.Add(new Sheep { Name = "Bella", Age = 16, Species = "Sheep" });
             Animals.Add(new Parrot { Name = "Kesha", Age = 3, Species = "Parrot" });
+            Animals.Add(new Unicorn { Name = "Silver", Age = 212, Species = "Unicorn" });
+            Animals.Add(new Dragon { Name = "Drakharis", Age = 156, Species = "Dragon" });
+            Animals.Add(new Dolphin { Name = "Bob", Age = 14, Species = "Dolphin" });
         }
 
         private void AnimalList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
