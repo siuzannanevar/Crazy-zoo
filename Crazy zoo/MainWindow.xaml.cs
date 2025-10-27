@@ -33,7 +33,7 @@ namespace Crazy_zoo
 
         private void MakeSound_Click(object sender, RoutedEventArgs e)
         {
-            if(AnimalList.SelectedItem is not Animal animal)
+            if (AnimalList.SelectedItem is not Animal animal)
             {
                 MessageBox.Show(ErrorMessages.errorNoOneSelected);
                 return;
@@ -72,7 +72,6 @@ namespace Crazy_zoo
                 LogBox.Items.Add(crazy.ActCrazy());
             else
                 MessageBox.Show(ErrorMessages.errorCrazyAction);
-
         }
 
         private void AddAnimal_Click(object sender, RoutedEventArgs e)
@@ -92,6 +91,12 @@ namespace Crazy_zoo
             if (!int.TryParse(NewAgeBox.Text, out int age))
             {
                 MessageBox.Show(ErrorMessages.errorInvalidAge);
+                return;
+            }
+
+            if (age < 0)
+            {
+                MessageBox.Show(ErrorMessages.errorWrongAge);
                 return;
             }
 

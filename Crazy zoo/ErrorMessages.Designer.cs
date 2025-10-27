@@ -113,5 +113,14 @@ namespace Crazy_zoo {
                 return ResourceManager.GetString("errorNoOneSelected", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на Please enter the valid age!.
+        /// </summary>
+        internal static string errorWrongAge {
+            get {
+                return ResourceManager.GetString("errorWrongAge", resourceCulture);
+            }
+        }
     }
 }
