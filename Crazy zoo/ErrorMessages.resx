@@ -135,6 +135,9 @@
   <data name="errorNoOneSelected" xml:space="preserve">
     <value>Please select animal!</value>
   </data>
+  <data name="errorRemove" xml:space="preserve">
+    <value>The error while removing!</value>
+  </data>
   <data name="errorWrongAge" xml:space="preserve">
     <value>Please enter the valid age!</value>
   </data>
