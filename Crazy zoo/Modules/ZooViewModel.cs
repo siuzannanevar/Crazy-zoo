@@ -78,6 +78,9 @@ namespace Crazy_zoo.Modules
             _enclosure.Add(new Parrot { Name = "Kesha", Age = 3, Species = "Parrot" });
             _enclosure.Add(new Unicorn { Name = "Silver", Age = 212, Species = "Unicorn" });
             _enclosure.Add(new Dragon { Name = "Drakharis", Age = 156, Species = "Dragon" });
+            _enclosure.Add(new Capybara { Name = "Cappy", Age = 4, Species = "Capybara" });
+            _secondEnclosure.Add(new Shark { Name = "Jaws", Age = 8, Species = "Shark" });
+            _secondEnclosure.Add(new Whale { Name = "Willy", Age = 20, Species = "Whale" });
 
             UpdateStats();
         }
