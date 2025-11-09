@@ -120,6 +120,9 @@
   <data name="errorCrazyAction" xml:space="preserve">
     <value>This animal can't do any crazy action!</value>
   </data>
+  <data name="errorDataBase" xml:space="preserve">
+    <value>Error in data base!</value>
+  </data>
   <data name="errorEmptyName" xml:space="preserve">
     <value>Please enter the name!</value>
   </data>

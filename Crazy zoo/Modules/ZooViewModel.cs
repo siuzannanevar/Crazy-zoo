@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Crazy_zoo.Modules;
 using Crazy_zoo.Animals;
+using Crazy_zoo.Logging;
+using Crazy_zoo.Data;
 using Crazy_zoo.Animals.Interfaces;
 
 namespace Crazy_zoo.Modules
@@ -14,6 +17,8 @@ namespace Crazy_zoo.Modules
         private readonly Enclosure<Animal> _enclosure;
         private readonly Enclosure<Animal> _secondEnclosure;
         private readonly DispatcherTimer _nightTimer;
+        private readonly ILogger _logger;
+        private readonly IRepository<Animal> _repository;
 
         public ObservableCollection<Animal> Animals { get; } = new();
         public ObservableCollection<Animal> SecondAnimals { get; } = new();
@@ -55,8 +60,13 @@ namespace Crazy_zoo.Modules
         public RelayCommand CrazyActionCommand { get; }
         public RelayCommand StartNightEventCommand { get; }
 
-        public ZooViewModel()
+        public ZooViewModel(ILogger logger, IRepository<Animal> repository)
         {
+            _logger = logger;
+            _repository = repository;
+
+            _logger.Log("ZooViewModel initialized.");
+
             _enclosure = new Enclosure<Animal>();
             _secondEnclosure = new Enclosure<Animal>();
             _nightTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
@@ -73,45 +83,107 @@ namespace Crazy_zoo.Modules
             _enclosure.AnimalJoinedInSameEnclosure += (s, e) => Animals.Add(e.Animal);
             _secondEnclosure.AnimalJoinedInSameEnclosure += (s, e) => SecondAnimals.Add(e.Animal);
 
-            _enclosure.Add(new Lion { Name = "Edward", Age = 17, Species = "Lion" });
-            _enclosure.Add(new Sheep { Name = "Bella", Age = 16, Species = "Sheep" });
-            _enclosure.Add(new Parrot { Name = "Kesha", Age = 3, Species = "Parrot" });
-            _enclosure.Add(new Unicorn { Name = "Silver", Age = 212, Species = "Unicorn" });
-            _enclosure.Add(new Dragon { Name = "Drakharis", Age = 156, Species = "Dragon" });
-            _enclosure.Add(new Capybara { Name = "Cappy", Age = 4, Species = "Capybara" });
-            _secondEnclosure.Add(new Shark { Name = "Jaws", Age = 8, Species = "Shark" });
-            _secondEnclosure.Add(new Whale { Name = "Willy", Age = 20, Species = "Whale" });
-
+            LoadAnimals();
             UpdateStats();
+        }
+
+        private void LoadAnimals()
+        {
+            try
+            {
+                var animalsFromDb = _repository.GetAll().ToList();
+
+                if (animalsFromDb.Any())
+                {
+                    foreach (var animal in animalsFromDb)
+                    {
+                        var concrete = EnsureConcreteAnimal(animal);
+                        concrete.EnclosureId ??= 1;
+
+                        if (concrete.EnclosureId == 1)
+                            _enclosure.Add(concrete);
+                        else
+                            _secondEnclosure.Add(concrete);
+                    }
+                    _logger.Log($"Loaded {animalsFromDb.Count} animals from database.");
+                }
+                else
+                {
+                    AddDefaultAnimals();
+                    _logger.Log("Database empty — added default animals.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Log($"Error loading animals from database: {ex.Message}");
+                MessageBox.Show(ErrorMessages.errorDataBase);
+            }
+        }
+
+        private Animal EnsureConcreteAnimal(Animal animal)
+        {
+            // Используем Trim() для Species, чтобы убрать пробелы из NCHAR(100)
+            string species = animal.Species.Trim();
+
+            Animal concrete = species switch
+            {
+                "Lion" => new Lion(),
+                "Sheep" => new Sheep(),
+                "Parrot" => new Parrot(),
+                "Unicorn" => new Unicorn(),
+                "Dragon" => new Dragon(),
+                "Capybara" => new Capybara(),
+                "Dolphin" => new Dolphin(),
+                "Shark" => new Shark(),
+                "Whale" => new Whale(),
+                _ => new CustomAnimal() { CrazyText = (animal as CustomAnimal)?.CrazyText ?? "" }
+            };
+
+            concrete.Id = animal.Id;
+            concrete.Name = animal.Name.Trim(); // убрать пробелы у Name
+            concrete.Species = species;
+            concrete.Age = animal.Age;
+            concrete.EnclosureId = animal.EnclosureId;
+
+            return concrete;
+        }
+
+        private void AddDefaultAnimals()
+        {
+            var defaultAnimals = new Animal[]
+            {
+                new Lion { Name = "Edward", Age = 17, Species = "Lion" },
+                new Sheep { Name = "Bella", Age = 16, Species = "Sheep" },
+                new Parrot { Name = "Kesha", Age = 3, Species = "Parrot" },
+                new Unicorn { Name = "Silver", Age = 212, Species = "Unicorn" },
+                new Dragon { Name = "Drakharis", Age = 156, Species = "Dragon" },
+                new Capybara { Name = "Capy", Age = 2, Species = "Capybara" },
+                new Dolphin { Name = "Dolph", Age = 15, Species = "Dolphin" },
+                new Shark { Name = "Jaw", Age = 8, Species = "Shark" },
+                new Whale { Name = "Wally", Age = 47, Species = "Whale" }
+            };
+
+            foreach (var animal in defaultAnimals)
+            {
+                animal.EnclosureId = (Animals.Count + SecondAnimals.Count) < 5 ? 1 : 2;
+                if (animal.EnclosureId == 1)
+                    _enclosure.Add(animal);
+                else
+                    _secondEnclosure.Add(animal);
+
+                _repository.Add(animal);
+            }
         }
 
         private void AddAnimalFromInput()
         {
-            if (string.IsNullOrWhiteSpace(NewName))
-            {
-                MessageBox.Show(ErrorMessages.errorEmptyName);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(NewSpecies))
-            {
-                MessageBox.Show(ErrorMessages.errorEmptySpecies);
-                return;
-            }
-
-            if (!int.TryParse(NewAge, out int age))
+            if (string.IsNullOrWhiteSpace(NewName) || string.IsNullOrWhiteSpace(NewSpecies) || !int.TryParse(NewAge, out int age) || age < 0)
             {
                 MessageBox.Show(ErrorMessages.errorInvalidAge);
                 return;
             }
 
-            if (age < 0)
-            {
-                MessageBox.Show(ErrorMessages.errorWrongAge);
-                return;
-            }
-
-            var animal = new CustomAnimal
+            var temp = new CustomAnimal
             {
                 Name = NewName,
                 Species = NewSpecies,
@@ -119,11 +191,15 @@ namespace Crazy_zoo.Modules
                 CrazyText = NewCrazyText
             };
 
-            if (Animals.Count < 5)
+            var animal = EnsureConcreteAnimal(temp);
+            animal.EnclosureId = (Animals.Count + SecondAnimals.Count) < 5 ? 1 : 2;
+
+            if (animal.EnclosureId == 1)
                 _enclosure.Add(animal);
             else
                 _secondEnclosure.Add(animal);
 
+            _repository.Add(animal);
             Log.Insert(0, $"New animal added: {animal.Name} the {animal.Species}, age {animal.Age}");
             NewName = NewSpecies = NewCrazyText = NewAge = "";
             UpdateStats();
@@ -132,36 +208,21 @@ namespace Crazy_zoo.Modules
         private void RemoveSelectedAnimal()
         {
             var animal = SelectedAnyAnimal;
-            if (animal == null)
-            {
-                MessageBox.Show(ErrorMessages.errorNoOneSelected);
-                return;
-            }
+            if (animal == null) { MessageBox.Show(ErrorMessages.errorNoOneSelected); return; }
 
             try
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (Animals.Contains(animal))
-                    {
-                        Animals.Remove(animal);
-                        _enclosure.Remove(animal);
-                    }
-                    else if (SecondAnimals.Contains(animal))
-                    {
-                        SecondAnimals.Remove(animal);
-                        _secondEnclosure.Remove(animal);
-                    }
+                    if (Animals.Contains(animal)) Animals.Remove(animal);
+                    else if (SecondAnimals.Contains(animal)) SecondAnimals.Remove(animal);
 
-                    Log.Insert(0, $"{animal.Name} the {animal.Species} was removed from the zoo!");
+                    _repository.Remove(animal);
                     SelectedAnyAnimal = null;
                     UpdateStats();
                 });
             }
-            catch (Exception)
-            {
-                MessageBox.Show(ErrorMessages.errorRemove);
-            }
+            catch (Exception) { MessageBox.Show(ErrorMessages.errorRemove); }
         }
 
         private void MakeSound()
@@ -181,31 +242,22 @@ namespace Crazy_zoo.Modules
         public async Task FeedAnimalAsync(string food)
         {
             if (string.IsNullOrWhiteSpace(food)) return;
-
             var all = Animals.Concat(SecondAnimals).ToList();
-            Log.Insert(0, $"Feeding started with {food}");
-
             foreach (var a in all)
             {
                 Log.Insert(0, $"{a.Name} the {a.Species} starts eating {food}...");
                 await Task.Delay(500);
                 Log.Insert(0, $"{a.Name} the {a.Species} finished eating {food}!");
             }
-
-            Log.Insert(0, $"All animals have eaten their {food}");
         }
 
         private void UpdateStats()
         {
-            var text1 = Animals.Any()
-                ? string.Join("\n", Animals.GroupBy(a => a.Species)
-                    .Select(g => $"{g.Key}: {g.Count()} (avg {g.Average(a => a.Age):F1})"))
-                : "— empty —";
+            var text1 = Animals.Any() ? string.Join("\n", Animals.GroupBy(a => a.Species)
+                .Select(g => $"{g.Key}: {g.Count()} (avg {g.Average(a => a.Age):F1})")) : "— empty —";
 
-            var text2 = SecondAnimals.Any()
-                ? string.Join("\n", SecondAnimals.GroupBy(a => a.Species)
-                    .Select(g => $"{g.Key}: {g.Count()} (avg {g.Average(a => a.Age):F1})"))
-                : "— empty —";
+            var text2 = SecondAnimals.Any() ? string.Join("\n", SecondAnimals.GroupBy(a => a.Species)
+                .Select(g => $"{g.Key}: {g.Count()} (avg {g.Average(a => a.Age):F1})")) : "— empty —";
 
             Stats = $"Enclosure 1:\n{text1}\n\nEnclosure 2:\n{text2}";
         }

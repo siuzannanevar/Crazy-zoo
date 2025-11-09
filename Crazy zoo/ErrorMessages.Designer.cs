@@ -70,6 +70,15 @@ namespace Crazy_zoo {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Error in data base!.
+        /// </summary>
+        internal static string errorDataBase {
+            get {
+                return ResourceManager.GetString("errorDataBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на Please enter the name!.
         /// </summary>
         internal static string errorEmptyName {

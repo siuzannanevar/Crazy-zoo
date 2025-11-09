@@ -4,7 +4,9 @@ namespace Crazy_zoo.Modules
 {
     public class CustomAnimal : Animal, ICrazyAction
     {
-        public string CrazyText { get; set; }
+        public string CrazyText { get; set; } = "";
+
+        public CustomAnimal() { }
 
         public override string MakeSound()
         {

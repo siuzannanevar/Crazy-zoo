@@ -11,6 +11,7 @@ namespace Crazy_zoo.Animals
 {
     public class Lion : Animal, ICrazyAction
     {
+        public Lion() { }
         public override string MakeSound() => "Raaaaw!";
         public string ActCrazy()
         {

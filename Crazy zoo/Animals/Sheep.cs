@@ -10,7 +10,8 @@ using System.Xml.Linq;
 namespace Crazy_zoo.Animals
 {
     public class Sheep : Animal, ICrazyAction
-    {
+    {   
+        public Sheep() { }
         public override string MakeSound() => "Beeee!";
 
         public string ActCrazy()

@@ -6,10 +6,6 @@
         Height="1000"
         Width="900">
 
-    <Window.DataContext>
-        <vm:ZooViewModel/>
-    </Window.DataContext>
-
     <Window.Background>
         <ImageBrush ImageSource="/Images/background.jpg" Stretch="UniformToFill"/>
     </Window.Background>

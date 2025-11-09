@@ -10,6 +10,7 @@ namespace Crazy_zoo.Animals
 {
     public class Shark : Animal, ICrazyAction
     {
+        public Shark() { }
         public override string MakeSound() => $"says: 🦈🦈🦈!";
         public string ActCrazy()
         {

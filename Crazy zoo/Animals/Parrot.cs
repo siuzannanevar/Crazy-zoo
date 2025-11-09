@@ -11,6 +11,7 @@ namespace Crazy_zoo.Animals
 {
     public class Parrot : Animal, IFlyable, ICrazyAction
     {
+        public Parrot() { }
         private bool IsFlying = false;
 
         public override string MakeSound() => "Chirp!";
