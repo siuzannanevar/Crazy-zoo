@@ -122,7 +122,6 @@ namespace Crazy_zoo.Modules
 
         private Animal EnsureConcreteAnimal(Animal animal)
         {
-            // Используем Trim() для Species, чтобы убрать пробелы из NCHAR(100)
             string species = animal.Species.Trim();
 
             Animal concrete = species switch
@@ -140,7 +139,7 @@ namespace Crazy_zoo.Modules
             };
 
             concrete.Id = animal.Id;
-            concrete.Name = animal.Name.Trim(); // убрать пробелы у Name
+            concrete.Name = animal.Name.Trim();
             concrete.Species = species;
             concrete.Age = animal.Age;
             concrete.EnclosureId = animal.EnclosureId;
@@ -177,21 +176,17 @@ namespace Crazy_zoo.Modules
 
         private void AddAnimalFromInput()
         {
-            if (string.IsNullOrWhiteSpace(NewName) || string.IsNullOrWhiteSpace(NewSpecies) || !int.TryParse(NewAge, out int age) || age < 0)
+            var wnd = new AddAnimalWindow
             {
-                MessageBox.Show(ErrorMessages.errorInvalidAge);
-                return;
-            }
-
-            var temp = new CustomAnimal
-            {
-                Name = NewName,
-                Species = NewSpecies,
-                Age = age,
-                CrazyText = NewCrazyText
+                Owner = Application.Current.MainWindow
             };
 
-            var animal = EnsureConcreteAnimal(temp);
+            bool? result = wnd.ShowDialog();
+            if (result != true || wnd.CreatedAnimal == null)
+                return;
+
+            var animal = wnd.CreatedAnimal;
+
             animal.EnclosureId = (Animals.Count + SecondAnimals.Count) < 5 ? 1 : 2;
 
             if (animal.EnclosureId == 1)
@@ -201,7 +196,6 @@ namespace Crazy_zoo.Modules
 
             _repository.Add(animal);
             Log.Insert(0, $"New animal added: {animal.Name} the {animal.Species}, age {animal.Age}");
-            NewName = NewSpecies = NewCrazyText = NewAge = "";
             UpdateStats();
         }
 
