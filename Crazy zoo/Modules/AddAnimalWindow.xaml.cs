@@ -25,7 +25,7 @@ namespace Crazy_zoo.Modules
         {
             if (string.IsNullOrWhiteSpace(NameBox.Text) || string.IsNullOrWhiteSpace(SpeciesBox.Text) || !int.TryParse(AgeBox.Text, out int age))
             {
-                MessageBox.Show("Please fill Name, Species and valid Age.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(ErrorMessages.errorAddAnimal, "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

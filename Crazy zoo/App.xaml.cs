@@ -1,58 +1,46 @@
-﻿using Crazy_zoo;
-using Crazy_zoo.Data;
-using Crazy_zoo.Logging;
-using Crazy_zoo.Modules;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+using Crazy_zoo.Modules;
+using Crazy_zoo.Logging;
+using Crazy_zoo.Data;
+using Crazy_zoo.Animals;
 
 namespace Crazy_zoo
 {
     public partial class App : Application
     {
-        public static ServiceProvider ServiceProvider { get; private set; } = null!;
-
         protected override void OnStartup(StartupEventArgs e)
         {
-            AppDomain.CurrentDomain.UnhandledException += (s, ev) =>
-            {
-                MessageBox.Show(ev.ExceptionObject.ToString(), "Unhandled Exception");
-            };
-
-            DispatcherUnhandledException += (s, ev) =>
-            {
-                MessageBox.Show(ev.Exception.ToString(), "Dispatcher Exception");
-                ev.Handled = true;
-            };
-
-            try
-            {
-                var services = new ServiceCollection();
-
-                services.AddSingleton<ILogger, XMLLogger>();
-
-                string connectionString = ConfigurationManager
-                    .ConnectionStrings["ZooDB"]
-                    .ConnectionString;
-
-                services.AddSingleton<IRepository<Animal>>(
-                    sp => new SqlRepository<Animal>(connectionString));
-
-                services.AddSingleton<ZooViewModel>();
-                services.AddSingleton<MainWindow>();
-
-                ServiceProvider = services.BuildServiceProvider();
-
-                var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
-                mainWindow.Show();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Startup Exception");
-            }
-
             base.OnStartup(e);
+
+            ILogger logger = new ConsoleLogger();
+            IRepository<Animal> repository = new InMemoryRepository<Animal>();
+
+            var viewModel = new ZooViewModel(logger, repository);
+
+            var mainWindow = new MainWindow(viewModel);
+            mainWindow.Show();
         }
+    }
+
+    public class ConsoleLogger : ILogger
+    {
+        public void Log(string message)
+        {
+            System.Diagnostics.Debug.WriteLine(message);
+        }
+    }
+
+    public class InMemoryRepository<T> : IRepository<T> where T : Animal
+    {
+        private readonly List<T> _items = new();
+
+        public void Add(T item) => _items.Add(item);
+        public void Remove(T item) => _items.Remove(item);
+        public IEnumerable<T> GetAll() => _items;
+
+        public T? Find(Func<T, bool> predicate) => _items.FirstOrDefault(predicate);
     }
 }

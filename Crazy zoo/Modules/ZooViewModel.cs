@@ -14,8 +14,6 @@ namespace Crazy_zoo.Modules
 {
     public class ZooViewModel : BaseViewModel
     {
-        private readonly Enclosure<Animal> _enclosure;
-        private readonly Enclosure<Animal> _secondEnclosure;
         private readonly DispatcherTimer _nightTimer;
         private readonly ILogger _logger;
         private readonly IRepository<Animal> _repository;
@@ -67,8 +65,6 @@ namespace Crazy_zoo.Modules
 
             _logger.Log("ZooViewModel initialized.");
 
-            _enclosure = new Enclosure<Animal>();
-            _secondEnclosure = new Enclosure<Animal>();
             _nightTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
             _nightTimer.Tick += NightEvent;
 
@@ -80,11 +76,7 @@ namespace Crazy_zoo.Modules
             CrazyActionCommand = new RelayCommand(PerformCrazyAction, () => SelectedAnyAnimal != null);
             StartNightEventCommand = new RelayCommand(StartNightEvent);
 
-            _enclosure.AnimalJoinedInSameEnclosure += (s, e) => Animals.Add(e.Animal);
-            _secondEnclosure.AnimalJoinedInSameEnclosure += (s, e) => SecondAnimals.Add(e.Animal);
-
             LoadAnimals();
-            UpdateStats();
         }
 
         private void LoadAnimals()
@@ -101,9 +93,9 @@ namespace Crazy_zoo.Modules
                         concrete.EnclosureId ??= 1;
 
                         if (concrete.EnclosureId == 1)
-                            _enclosure.Add(concrete);
+                            Animals.Add(concrete);
                         else
-                            _secondEnclosure.Add(concrete);
+                            SecondAnimals.Add(concrete);
                     }
                     _logger.Log($"Loaded {animalsFromDb.Count} animals from database.");
                 }
@@ -112,6 +104,8 @@ namespace Crazy_zoo.Modules
                     AddDefaultAnimals();
                     _logger.Log("Database empty — added default animals.");
                 }
+
+                UpdateStats();
             }
             catch (Exception ex)
             {
@@ -165,13 +159,16 @@ namespace Crazy_zoo.Modules
             foreach (var animal in defaultAnimals)
             {
                 animal.EnclosureId = (Animals.Count + SecondAnimals.Count) < 5 ? 1 : 2;
+
                 if (animal.EnclosureId == 1)
-                    _enclosure.Add(animal);
+                    Animals.Add(animal);
                 else
-                    _secondEnclosure.Add(animal);
+                    SecondAnimals.Add(animal);
 
                 _repository.Add(animal);
             }
+
+            UpdateStats();
         }
 
         private void AddAnimalFromInput()
@@ -190,9 +187,9 @@ namespace Crazy_zoo.Modules
             animal.EnclosureId = (Animals.Count + SecondAnimals.Count) < 5 ? 1 : 2;
 
             if (animal.EnclosureId == 1)
-                _enclosure.Add(animal);
+                Animals.Add(animal);
             else
-                _secondEnclosure.Add(animal);
+                SecondAnimals.Add(animal);
 
             _repository.Add(animal);
             Log.Insert(0, $"New animal added: {animal.Name} the {animal.Species}, age {animal.Age}");

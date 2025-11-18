@@ -61,6 +61,15 @@ namespace Crazy_zoo {
         }
         
         /// <summary>
+        ///   Ищет локализованную строку, похожую на Please fill Name, Species and valid Age..
+        /// </summary>
+        internal static string errorAddAnimal {
+            get {
+                return ResourceManager.GetString("errorAddAnimal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Ищет локализованную строку, похожую на This animal can&apos;t do any crazy action!.
         /// </summary>
         internal static string errorCrazyAction {
